@@ -1,0 +1,476 @@
+const express = require('express');
+const routes = require('./routes');
+const app = express();
+const  router  =  express.Router();
+const Datastore = require('nedb');
+const moment = require('moment');
+
+const bodyParser = require('body-parser');
+const multer = require('multer');
+const path = require('path')
+router.use(bodyParser.urlencoded({ extended:  true }));
+router.use(bodyParser.json());
+const fs = require("fs");
+const csv = require('fast-csv');
+const mysql = require('mysql');
+
+var connection = mysql.createConnection({
+	host: "localhost",
+	user: "admin",
+	password: "password"
+})
+
+connection.connect(function(err){
+	if (err) throw err;
+	console.log("connected to Database");
+});
+
+const  jwt  =  require('jsonwebtoken');
+const  bcrypt  =  require('bcryptjs'); 
+
+const salt = bcrypt.genSaltSync(10);
+
+const SECRET_KEY = "secretkey23456";
+
+var storage = multer.diskStorage({
+	destination: function (req, file, cb) {
+		console.log(file);
+		if(req.body.destination == 'csv'){
+				if (!fs.existsSync('temp/csv/')) {
+					fs.mkdir('temp/csv/', err => cb(err, 'temp/csv/'));
+					cb(null, 'temp/csv/');
+				}
+				else{
+					cb(null, 'temp/csv');
+				}
+		}
+		else{
+			const countrydir = 'public/images/'+req.body.country+'/';
+			const locationdir = 'public/images/'+req.body.country+'/'+req.body.location+'/';
+			
+			if (!fs.existsSync(countrydir)) {
+				fs.mkdir(countrydir, err => cb(err, countrydir));
+				fs.mkdir(locationdir, err => cb(err, locationdir));
+				cb(null, locationdir);
+			}
+			else{
+				if (!fs.existsSync(locationdir)) {
+					fs.mkdir(locationdir, err => cb(err, locationdir));
+					cb(null, locationdir);
+				}
+				else{
+					cb(null, locationdir);
+				}
+			}
+		}
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)) //Appending extension
+  }
+})
+
+var upload = multer({ storage: storage });
+
+
+app.use(function (req, res, next) {
+
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+    // Set to true if you need the website to include cookies in the requests sent
+    // to the API (e.g. in case you use sessions)
+    res.setHeader('Access-Control-Allow-Credentials', true);
+
+    // Pass to next layer of middleware
+    next();
+});
+
+app.use(express.static('public'));
+
+
+router.get('/api/', (req, res) => {
+    res.status(200).send('This API server is made for Bollegraaf');
+});
+
+router.post('/api/login', (req, res) => {
+	const  email  =  req.body.email;
+    const  hash  =   req.body.pass;
+	console.log(req);
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Users` WHERE `email` = '" + email + "' OR `username` = '" + email + "' Limit 1";
+
+	connection.query(sqlquery, function (err, result){
+		console.log(result[0].email);
+		if(err){throw err;}
+		else{
+			bcrypt.compare( hash, result[0].password, function(err, result1){
+				if(result1 === true){
+					const expiresIn = 24 * 60 * 60 * 1000;
+					const accessToken = jwt.sign({id: result1.id}, SECRET_KEY, {
+						expiresIn: expiresIn
+					});
+					res.status(200).send({
+						data: {
+						"email":  result[0].email, 
+						"access_token":  accessToken, 
+						"expires_in":  expiresIn, 
+						"id_token": result[0].id ,
+						"permissions": result[0].Permissions_id	}
+					});
+				}
+				else{
+					var err = "Gebruiker niet gevonden";
+					res.status(200).send({
+						err
+					})
+				}
+			})
+		}
+	})
+});
+
+
+/*
+	TODO: Broken code
+	Randomly stops after createUser, no error showing
+*/
+router.post('/api/register', (req, res) => {
+
+    const  email  =  req.body.email;
+    const  pass  =  req.body.pass;
+	console.log(email);
+	console.log(req.body.pass);
+	var password = "";
+		bcrypt.hash(req.body.pass, salt, function(err, hash) {
+        // Store hash in your password DB.
+			password = hash;
+			console.log(password);
+			createUser([email, password], (err)=>{
+				if(err) return  res.status(500).send("Server error!");
+				findUserByEmail([email], (err, user)=>{
+					if (err) return  res.status(500).send('Server error!');  
+					const  expiresIn  =  24  *  60  *  60;
+					const  accessToken  =  jwt.sign({ id:  user.id }, SECRET_KEY, {
+						expiresIn:  expiresIn
+					});
+					res.status(200).send({ 
+							"user":  user.email, "access_token":  accessToken, "expires_in":  expiresIn          
+						});
+				});
+			});
+		});
+});
+
+
+
+router.get('/api/user', (req, res) => {
+	var sqlquery = "SELECT `Users`.`id`, `Users`.`email`, `Users`.`username`, `Users`.`Permissions_id` FROM `bollegraafdb`.`Users`";
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		res.status(200).send({ 
+			result
+		});
+		//console.log(result[0].username);
+	}) 	// Callback is optional
+	
+});
+
+
+router.post('/api/user', (req, res) => {
+	console.log(req)
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Users` WHERE `email` = '" + req.body.email + "' OR `username` = '" + req.body.email + "'";
+	console.log(sqlquery);
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result);
+		// Callback is optional
+		res.status(200).send({ 
+			result
+		});
+	}) 	
+});
+
+router.get('/api/user/id', (req, res) => {
+	var id = req.query.id;
+
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Users` WHERE `id` = " + id;
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result);
+	}) 	// Callback is optional
+	res.status(200).send({
+		result
+	});
+});
+
+router.put('/api/user', (req, res) => {
+	console.log(req.body);
+
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Users`";
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result);
+	}) 	// Callback is optional
+	res.status(200).send({
+		result
+	});
+});
+
+router.delete('/api/user/id', (req, res) => {
+	var id = req.query.id
+
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Users` WHERE `id` = " + id;
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result);
+	}) 	// Callback is optional
+	res.status(200).send({
+		result
+	});
+
+})
+
+router.get('/api/userinfo', (req, res) =>{
+	console.log(req);
+	var sqlquery = 		"SELECT `bollegraafdb`.u.*, `bollegraafdb`.c.*, `bollegraafdb`.w.* "
+		sqlquery +=		"FROM `bollegraafdb`.`Userinfo` AS u "
+		sqlquery +=		"JOIN `bollegraafdb`.`Contactinfo` AS c "
+		sqlquery +=		"ON u.`Contactinfo_id` = c.`id` "
+		sqlquery +=		"JOIN `bollegraafdb`.`Workinfo` AS w "
+		sqlquery +=		"ON u.`Workinfo_id` = w.`id` "
+		sqlquery +=		"WHERE u.`id` = " + req.query.id + ";";
+		console.log(sqlquery)
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result)	
+		res.status(200).send({
+			result
+		});
+	})
+})
+
+
+router.post('/api/userinfo', (req, res) =>{
+	var sqlquery = ""
+	console.log(req.body);
+})
+
+router.put('/api/userinfo', (req, res) =>{
+	var userid = req.query.id
+	var sqlquery = ""
+	console.log(req.body);
+
+	sqlquery = "UPDATE `bollegraafdb`.`Userinfo` SET `name` = '" + req.body.name + "',  `surname` = '" + req.body.surname + "',  `city` = '" + req.body.city + "',  `country` = '" + req.body.country + "' WHERE `id` = " + userid +";"
+	
+	console.log(sqlquery);
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		sqlquery = "UPDATE `bollegraafdb`.`Workinfo` SET  `company` = '" + req.body.company + "',  `function` = '" + req.body.function + "',  `company_city` = '" + req.body.company_city + "',  `company_country` = '" + req.body.company_country + "' WHERE `id` = " + userid +";"
+			
+		connection.query(sqlquery, function (err, result1){
+			if(err) throw err;
+			sqlquery = "UPDATE `bollegraafdb`.`Contactinfo` SET  `workphone` = '" + req.body.workphone + "',  `privephone` = '" + req.body.privephone + "' WHERE `id` = " + userid +";"
+				connection.query(sqlquery, function (err, result2){
+				if(err) throw err;
+				res.status(200).send({
+					result
+				});
+			}) 	
+		})
+	})
+
+
+
+})
+
+router.delete('/api/userinfo', (req, res) =>{
+	var sqlquery = ""
+	console.log(req.body);
+})
+
+
+router.get('/api/training/id', (req, res) => {
+	var id = req.query.id;
+
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Training` WHERE `id` = " + id;
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result);
+	}) 	// Callback is optional
+	res.status(200).send({
+		result
+	});
+});
+
+router.put('/api/training', (req, res) => {
+	console.log(req.body);
+
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Training` WHERE `id` = " + id;
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result);
+	}) 	// Callback is optional
+	res.status(200).send({
+		result
+	});
+});
+
+router.delete('/api/training/id', (req, res) => {
+	var id = req.query.id
+
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Training` WHERE `id` = " + id;
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result);
+	}) 	// Callback is optional
+	res.status(200).send({
+		result
+	});
+
+})
+
+
+router.get('/api/message/sender', (req, res) => {
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Messages`";
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result);
+	}) 	// Callback is optional
+	res.status(200).send({ 
+	});
+});
+
+router.get('/api/message/reciever', (req, res) => {
+	var id = req.query.id;
+
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Messages` WHERE `id` = " + id;
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result);
+	}) 	// Callback is optional
+	res.status(200).send({
+		result
+	});
+});
+
+router.put('/api/message', (req, res) => {
+	console.log(req.body);
+
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Messages` WHERE `id` = " + id;
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result);
+	}) 	// Callback is optional
+	res.status(200).send({
+		result
+	});
+});
+
+router.delete('/api/message/id', (req, res) => {
+	var id = req.query.id
+
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Messages` WHERE `id` = " + id;
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result);
+	}) 	// Callback is optional
+	res.status(200).send({
+		result
+	});
+
+})
+
+router.post('/api/images', upload.array('file', 20), (req, res) => {
+	const files = req.files;
+	
+	for (const s of files) {
+		const doc = { 	
+			image_name: s.filename,
+			country: req.body.country,
+			location: req.body.location,
+			dest: s.destination.substr(s.destination.indexOf('/')+1),
+			date: req.body.date
+		}
+		imagesdb.insert(doc, function (err, newDoc) { 
+		console.log(doc);
+		});
+	};
+		
+});
+
+const  findUserByEmail  = (email) => {
+	console.log(email)
+	var sqlquery = "SELECT * FROM `bollegraafdb`.`Users` WHERE `email` = '" + email + "';";
+	console.log(sqlquery);
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		console.log(result);
+		return result;
+	}) 	
+	
+}
+
+const  createUser  = (user, cb) => {
+	console.log(user)
+	var sqlquery = "INSERT INTO `bollegraafdb`.`Users` (`email`, `password`) VALUES ('" + user[0] + "', '" + user[1] + "');";
+	console.log(sqlquery);
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		
+		console.log(result.insertId);
+		setupUserinfo(result.insertId);
+		return result.insertId;
+		// Callback is optional
+	}) 	
+}
+
+const setupUserinfo = (userid, cb) => {
+	var sqlquery = "INSERT INTO `bollegraafdb`.`Workinfo` (`id`) VALUES ('" + userid + "'); "
+	
+	console.log(sqlquery);
+	connection.query(sqlquery, function (err, result){
+		if(err) throw err;
+		sqlquery = "INSERT INTO `bollegraafdb`.`Contactinfo` (`id`) VALUES ('" + userid + "'); "
+		connection.query(sqlquery, function (err, result1){
+			if(err) throw err;
+			sqlquery = "INSERT INTO `bollegraafdb`.`Userinfo` (`id`, `Language_id`, `Workinfo_id`, `Contactinfo_id`) VALUES ('" + userid + "', 1, '" + userid + "', '" + userid + "');"
+			connection.query(sqlquery, function (err, result2){
+				if(err) throw err;
+				sqlquery = "UPDATE `bollegraafdb`.`Users` SET `Userinfo_id` = '" + userid + "' WHERE `id` = '" + userid +"';"
+				connection.query(sqlquery, function (err, result3){
+					if(err) throw err;
+					return result
+				})	
+			}) 	
+		})
+	})
+}
+
+const sendOrderMail = (order) => {
+	console.log(order);
+	sendmail({
+		from: 'no-reply@chrisfaber.tk',
+		to: 'chrisfaber95@gmail.com',
+		subject: 'testmail',
+		html: 'hallo',
+	}, function (err, reply){
+		console.log( err && err.stack);
+		console.dir(reply);
+	});
+		
+	return true;
+}
+
+
+app.use('/', routes);
+const  port  =  process.env.PORT  ||  3001;
+const  server  =  app.listen(port, () => {
+    console.log('Server listening at http://10.83.16.142:'  +  port);
+}); 
+
+//app.listen(3000, () => console.log('listening at port 3000'));
