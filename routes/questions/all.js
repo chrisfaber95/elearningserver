@@ -1,26 +1,22 @@
 const db = require('../../config/connection');
 
 module.exports = (req, res) => {
-   console.log(req)
-    var sqlquery = "select tfq.`question_id`, q.`questiontype`, q.`difficulty`, tfq.`question_text`, tfa.`indentifier`, tfa.`answer_text`, tfa.`isCorrect`, `at`.`training_id`, `at`.`tName`, `at`.`onderdeel_id`, `at`.`oName`, `at`.`subonderdeel_id`, `at`.`sName` "
-        sqlquery += "from `Tf_Question` as tfq "
-        sqlquery += "left join `Tf_Answer` as tfa using(`tf_question_id`) "
-        sqlquery += "LEFT JOIN `Question` as q using (`question_id`) "
-        sqlquery += "LEFT JOIN `allTrainingen` as `at` using (`subonderdeel_id`) "
+  // console.log(req)
+    var sqlquery = "select q.`question_id`, q.`questiontype`, q.`question_text`, mca.`answer_text`, mca.`correct_answer`, mca.`multiAnswer_id`, `q`.`subonderdeel_id` "
+        sqlquery += "from `Question` as q "
+        sqlquery += "left join `MultiAnswer` as mca using(`question_id`) "
 		if(req.params.subId != null){
 			sqlquery += "WHERE `subonderdeel_id` = "+req.params.subId+" "
 		}
         sqlquery += "union "
-        sqlquery += "select mcq.`question_id`, q.`questiontype`, q.`difficulty`, mcq.`question_text`, mca.`indentifier`, mca.`answer_text`, mca.`isCorrect`, `at`.`training_id`, `at`.`tName`, `at`.`onderdeel_id`, `at`.`oName`, `at`.`subonderdeel_id`, `at`.`sName` "
-        sqlquery += "from `Mc_Question` as mcq "
-        sqlquery += "left join `Mc_Answer` as mca using(`Mc_question_id`) "
-        sqlquery += "LEFT JOIN `Question` as q using (`question_id`) "
-		sqlquery += "LEFT JOIN `allTrainingen` as `at` using (`subonderdeel_id`) "
+		sqlquery += "select q.`question_id`, q.`questiontype`, q.`question_text`, ma.`answer_text`, ma.`answer_match`, ma.`matchAnswer_id`, `q`.`subonderdeel_id` "
+        sqlquery += "from `Question` as q "
+		sqlquery += "left join `MatchAnswer` as ma using(`question_id`) "
 		if(req.params.subId != null){
 			sqlquery += "WHERE `subonderdeel_id` = "+req.params.subId+""
 		}
 			sqlquery += ";"
-		console.log(sqlquery)
+		//console.log(sqlquery)
 		db.connection.query(sqlquery, function (err, result){
 		if(err) throw err;
 		//console.log(result);

@@ -9,37 +9,26 @@ module.exports = (req, res) => {
 	console.log(req.body.iText.includes('<figure class="media"><oembed url='))
 	if(req.body.iText.includes('<figure class="media"><oembed url=')){
 		
-		var first = '<iframe';
-		var second = 'een></iframe>';
-		if(req.body.iText.includes('tube.com/embed/')){
-		console.log(pagetext.match(new RegExp(first + "(.*)" + second))[0].toString());
-		//var pagetext1 = pagetext.match(new RegExp(first + "(.*)" + second))[0].toString();	
-			pagetext = pagetext.replace(/<iframe.*?<\/iframe>/g,'')
-			pagetext = pagetext.replace(first, '')
-			pagetext = pagetext.replace(second, '')
-			console.log(pagetext);
-		}
-		else{}
 		var firstvariable = 'url="';
 		var secondvariable = '"></oembed>';
  		//var newtext = pagetext.replace(re, "$1");
 		var vidurl = pagetext.match(new RegExp(firstvariable + "(.*)" + secondvariable))[0].toString();	
 		if(vidurl.includes('youtube')){
-			vidurl = vidurl.replace('tube.com/watch?v=', 'tube.com/embed/')
+			vidurl = vidurl.replace('tube.com/watch?v=', 'tube-nocookie.com/embed/')
 			vidurl = vidurl.replace(firstvariable, '')
 			vidurl = vidurl.replace(secondvariable, '')
 			console.log(vidurl);
 		}
 		else if(vidurl.includes('youtu.be')){
-			vidurl = vidurl.replace('tu.be/', 'tube.com/embed/')
+			vidurl = vidurl.replace('tu.be', 'tube-nocookie.com/embed/')
 			vidurl = vidurl.replace(firstvariable, '')
 			vidurl = vidurl.replace(secondvariable, '')
 		}
 		var embedurl = '<iframe width="560" height="315" src="'+vidurl+'" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
-		console.log(embedurl)
-		var text = pagetext.replace('</oembed>', '</oembed>'+embedurl)
+		
+		var text = pagetext.replace('</oembed></figure>', '</oembed></figure>'+embedurl)
 		//var text = text1.replace('></oembed></figure>', ' frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>')	
-	//	console.log(text)
+		console.log(text)
 	}
 	else if(req.body.iText.includes('&lt;a')){
 		text = pagetext.replace(/&lt;/g, '<')
@@ -52,11 +41,11 @@ module.exports = (req, res) => {
 	}
 	
     if(req.params.infoId == 0){
-		var sqlquery = "INSERT INTO `Information` (`page`, `subonderdeel_id`, `text`, `title`, `language_id` ) VALUES ("+req.body.iPage + ", "+req.body.sId+ ", "+db.connection.escape(req.body.iText)+", "+db.connection.escape(req.body.iTitle)+", '1');"
+		var sqlquery = "INSERT INTO `Information` (`page`, `subonderdeel_id`, `text`, `title`) VALUES ("+req.body.iPage + ", "+req.body.sId+ ", '"+req.body.iText+"', '"+req.body.iTitle+"');"
     }
     else{
 		
-		var sqlquery = "UPDATE `Information` SET `text`= " + db.connection.escape(text) + ", `page`= '" + req.body.iPage + "' , `title`= " + db.connection.escape(req.body.iTitle) +", `language_id`= '" + req.body.language_id + "' WHERE `information_id`= " + req.params.infoId + ";"
+		var sqlquery = "UPDATE `Information` SET `text`= " + db.connection.escape(text) + ", `page`= '" + req.body.iPage + "' , `title`= " + db.connection.escape(req.body.iTitle) + " WHERE `information_id`= " + req.params.infoId + ";"
     }
 	console.log(sqlquery)
     db.connection.query(sqlquery, function (err, result3){

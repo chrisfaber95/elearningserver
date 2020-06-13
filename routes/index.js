@@ -21,6 +21,8 @@ routes.use('/settings', settings);
 const questions = require('./questions');
 routes.use('/questions', questions);
 
+const referentions = require('./referentions');
+routes.use('/referentions', referentions);
 
 
 routes.get('/', (req, res) => {
