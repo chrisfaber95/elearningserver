@@ -50,7 +50,9 @@ module.exports = (req, res) => {
 		
 		//text = req.body.iText
 	}
-	
+	else{
+		text = pagetext	
+	}
     if(req.params.infoId == 0){
 		var sqlquery = "INSERT INTO `Information` (`page`, `subonderdeel_id`, `text`, `title`, `language_id` ) VALUES ("+req.body.iPage + ", "+req.body.sId+ ", "+db.connection.escape(req.body.iText)+", "+db.connection.escape(req.body.iTitle)+", '1');"
     }

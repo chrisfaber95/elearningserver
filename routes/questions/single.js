@@ -7,13 +7,15 @@ module.exports = (req, res) => {
         sqlquery += "left join `MultiAnswer` as mca using(`question_id`) "
 		if(req.params.questionId != null){
 			sqlquery += "WHERE `question_id` = "+req.params.questionId+" "
+			sqlquery += "AND `answer_text` IS NOT NULL "
 		}
         sqlquery += "union "
 		sqlquery += "select q.`question_id`, q.`questiontype`, q.`question_text`, ma.`answer_text`, ma.`answer_match`, ma.`matchAnswer_id`, `q`.`subonderdeel_id` "
         sqlquery += "from `Question` as q "
 		sqlquery += "left join `MatchAnswer` as ma using(`question_id`) "
 		if(req.params.questionId != null){
-			sqlquery += "WHERE `question_id` = "+req.params.questionId+""
+			sqlquery += "WHERE `question_id` = "+req.params.questionId+" "
+			sqlquery += "AND `answer_text` IS NOT NULL"
 		}
 			sqlquery += ";"
 		//console.log(sqlquery)
