@@ -13,6 +13,6 @@ const post = require('./post')
 user.get('/', all);
 user.get('/:userId', single)
 user.post('/:userId', post)
-user.put('/update/:usesrId', update)
+user.put('/:userId', update)
 
 module.exports = user;

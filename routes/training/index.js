@@ -21,6 +21,7 @@ training.use('/subonderdeel', subonderdeel)
 training.get('/', all);
 training.get('/user/:userId', all)
 training.get('/:trainingId', single)
+training.get('/single/:trainingId/user/:userId', single)
 training.post('/', post)
 training.put('/user/:userId', update);
 training.delete('/:trainingId', remove);
