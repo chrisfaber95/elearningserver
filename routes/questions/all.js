@@ -2,14 +2,14 @@ const db = require('../../config/connection');
 
 module.exports = (req, res) => {
   // console.log(req)
-    var sqlquery = "select q.`question_id`, q.`questiontype`, q.`question_text`, mca.`answer_text`, mca.`correct_answer`, mca.`multiAnswer_id`, `q`.`subonderdeel_id` "
+    var sqlquery = "select q.`question_id`, q.`questiontype`, q.`question_text`, mca.`answer_text`, mca.`correct_answer`, mca.`multiAnswer_id`, `q`.`subonderdeel_id`, `q`.`language_id`, q.`difficulty` "
         sqlquery += "from `Question` as q "
         sqlquery += "left join `MultiAnswer` as mca using(`question_id`) "
 		if(req.params.subId != null){
 			sqlquery += "WHERE `subonderdeel_id` = "+req.params.subId+" "
 		}
         sqlquery += "union "
-		sqlquery += "select q.`question_id`, q.`questiontype`, q.`question_text`, ma.`answer_text`, ma.`answer_match`, ma.`matchAnswer_id`, `q`.`subonderdeel_id` "
+		sqlquery += "select q.`question_id`, q.`questiontype`, q.`question_text`, ma.`answer_text`, ma.`answer_match`, ma.`matchAnswer_id`, `q`.`subonderdeel_id`, `q`.`language_id`, q.`difficulty` "
         sqlquery += "from `Question` as q "
 		sqlquery += "left join `MatchAnswer` as ma using(`question_id`) "
 		if(req.params.subId != null){

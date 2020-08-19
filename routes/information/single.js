@@ -6,7 +6,7 @@ module.exports = (req, res) => {
         sqlquery += "FROM `Information` as i "
 		sqlquery += "LEFT JOIN `Subonderdeel` as s using (subonderdeel_id) "
 		sqlquery += "WHERE s.`subonderdeel_id` = "+req.params.subId + " ORDER BY `iPage` ASC;";
-		console.log(sqlquery)
+		//console.log(sqlquery)
 		db.connection.query(sqlquery, function (err, result){
 		if(err) throw err;
 		//console.log(result);

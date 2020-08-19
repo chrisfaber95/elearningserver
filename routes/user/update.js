@@ -23,7 +23,7 @@ module.exports = (req, res) => {
 
 const updateUserinfo = (info, cb) => {
     if(info.userinfo_id != null){
-        sqlquery = "UPDATE `Userinfo` SET `name`= '" + info.name + "', `surname`= '" + info.surname + "', `city`= '" + info.city + "', `country`= '" + info.country + "' WHERE `userinfo_id`= " + info.userinfo_id + ";"
+        sqlquery = "UPDATE `Userinfo` SET `name`= '" + info.name + "', `surname`= '" + info.surname + "', `city`= '" + info.city + "', `country`= '" + info.country + "', `language_id` = '" + info.language_id + "' WHERE `userinfo_id`= " + info.userinfo_id + ";"
             db.connection.query(sqlquery, function (err, result3){
             if(err) throw err;
         })
@@ -48,8 +48,13 @@ const updateContactinfo = (info, cb) => {
 
 const updateUser = (info, cb) => {
     console.log(info[0])
-	sqlquery = "UPDATE `User` SET `email`= '" + info[0].email + "', `permission_id` = '" + info[0].permission_id + "' WHERE `user_id`= " + info[1] + ";"
-    console.log(sqlquery)    
+	if(info[0].expire_date != null || info[0].expire_date != 'undefined'){
+		sqlquery = "UPDATE `User` SET `email`= '" + info[0].email + "', `permission_id` = '" + info[0].permission_id + "', `deleted` = '" + info[0].deleted + "', `expire_date` = '" + info[0].expire_date + "' WHERE `user_id`= " + info[1] + ";"
+	}
+	else{
+		sqlquery = "UPDATE `User` SET `email`= '" + info[0].email + "', `permission_id` = '" + info[0].permission_id + "', `deleted` = '" + info[0].deleted + "', `expire_date` = null WHERE `user_id`= " + info[1] + ";"	
+	}
+	console.log(sqlquery)    
     db.connection.query(sqlquery, function (err, result3){
         if(err) throw err;
     })

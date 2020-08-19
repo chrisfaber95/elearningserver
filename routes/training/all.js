@@ -16,7 +16,7 @@ module.exports = (req, res) => {
    else{
 	var sqlquery = "SELECT * FROM `allTrainingen`;";
    }
-    console.log(sqlquery)
+   // console.log(sqlquery)
 		db.connection.query(sqlquery, function (err, result){
 		//	console.log(result)
 		if(err) throw err;

@@ -2,8 +2,8 @@ const db = require('../../config/connection');
 
 module.exports = (req, res) => {
    
-    var sqlquery = "DELETE FROM `Information` "
-		sqlquery += "WHERE `Information`.`information_id` = " + req.params.infoId +";"
+    var sqlquery = "DELETE FROM `Ref_Information` "
+		sqlquery += "WHERE `Ref_Information`.`ref_information_id` = " + req.params.refId +";"
 
 		db.connection.query(sqlquery, function (err, result){
 		if(err) throw err;

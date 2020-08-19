@@ -14,9 +14,10 @@ const update = require('./update');
 question.get('/', all);
 question.get('/:subId', all);
 question.get('/single/:questionId', single)
+question.get('/single/:questionId/:type', single)
 question.delete('/:questionId', remove)
 question.post('/', post)
-question.put('/update/:questionId', update)
+question.put('/:questionId', update)
 
 
 module.exports = question;

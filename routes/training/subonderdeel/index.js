@@ -8,7 +8,7 @@ const remove = require('./remove');
 
 
 onderdeel.get('/:subId', all);
-onderdeel.get('/', single)
+onderdeel.get('/single/:subId/user/:userId', single)
 onderdeel.post('/:trainingId', post)
 //onderdeel.put('/', update);
 onderdeel.delete('/:subId', remove);

@@ -24,6 +24,12 @@ routes.use('/questions', questions);
 const referentions = require('./referentions');
 routes.use('/referentions', referentions);
 
+const certificates = require('./certificates');
+routes.use('/certificates', certificates);
+
+const translation = require('./translation');
+routes.use('/translation', translation);
+
 
 routes.get('/', (req, res) => {
     res.status(200).json({

@@ -1,10 +1,10 @@
 const mysql = require('mysql');
-
+console.log(process.env)
 const connection = mysql.createPool({
-	host: "localhost",
-	user: "bollegraaf",
-	password: "password",
-    database: "bollegraafdb1",
+	host: process.env.DB_HOST,
+	user: process.env.DB_USER,
+	password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
 	multipleStatements: true
 })
 /*

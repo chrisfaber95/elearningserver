@@ -9,7 +9,7 @@ module.exports = (req, res) => {
         sqlquery += "JOIN `Onderdelen` as o ON s.`Onderdeel_id` = o.`id` "
         sqlquery += "JOIN `Training` as t ON o.`Training_id` = t.`id`"
         sqlquery += "WHERE o.`id` = " + req.params.onderdeelId +";";
-	console.log(sqlquery)
+//	console.log(sqlquery)
 	db.connection.query(sqlquery, function (err, result){
 		if(err) throw err;
 		const onderdeel = result;

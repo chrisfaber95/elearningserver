@@ -7,7 +7,7 @@ module.exports = (req, res) => {
 
 		db.connection.query(sqlquery, function (err, result){
 		if(err) throw err;
-		console.log(result);
+	//	console.log(result);
 		const language = result;
         res.status(200).json({language});
 	})   

@@ -11,6 +11,7 @@ const login = require('./login')
 const register = require('./register')
 const update = require('./update')
 const add = require('./add')
+const forget = require('./forget')
 
 user.get('/', all);
 user.get('/:userId', single)
@@ -18,5 +19,6 @@ user.post('/login', login)
 user.post('/register', register)
 user.post('/', add)
 user.put('/update/:userId', update)
+user.put('/forget', forget)
 
 module.exports = user;

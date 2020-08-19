@@ -27,7 +27,6 @@ const nodemailer = require("nodemailer");
 			from: '"Chris Faber Bollegraaf" chris.arma2@gmail.com', // sender address
 			to: mail, // list of receivers
 			subject: "Een account is aangemaakt", // Subject line
-			text: "Hello world?", // plain text body
 			html: "Een account is aangemaakt op dit emailadres met de volgende wachtwoord: " + pass  // html body
 		  };
 		
@@ -74,10 +73,11 @@ const  createUser  = (info, cb) => {
 	console.log(sqlquery);
 	db.connection.query(sqlquery, function (err, result){
 		if(err) throw err;
-		console.log(result[0][0].email)
+		console.log(result)
+		console.log(result)
 		
 					
-		var sqlquery = "UPDATE `bollegraafdb1`.`Userinfo` SET `name`= '" + info[0].name + "', `surname`= '" + info[0].surname + "', `city`= '" + info[0].city + "', `country`= '" + info.country + "' WHERE `userinfo_id`= '" + result[0][0].userinfo_id + "'; "
+		var sqlquery = "UPDATE `bollegraafdb1`.`Userinfo` SET `name`= '" + info[0].name + "', `surname`= '" + info[0].surname + "', `city`= '" + info[0].city + "', `country`= '" + info[0].country + "' WHERE `userinfo_id`= '" + result[0][0].userinfo_id + "'; "
 			sqlquery += "UPDATE `bollegraafdb1`.`Workinfo` SET `function`= '" + info[0].function + "', `company`= '" + info[0].company + "', `company_city`= '" + info[0].company_city + "', `company_country`= '" + info[0].company_country + "' WHERE `workinfo_id`= '" + result[0][0].workinfo_id + "'; "
 			sqlquery += "UPDATE `bollegraafdb1`.`Contactinfo` SET `workphone`= '" + info[0].workphone + "', `privephone`= '" + info[0].privephone + "' WHERE `contactinfo_id`= '" + result[0][0].contactinfo_id + "'; "
 
