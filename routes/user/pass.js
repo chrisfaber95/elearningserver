@@ -16,7 +16,7 @@ const nodemailer = require("nodemailer");
 			  service: 'gmail',
 			  auth: {
 				user: 'chris.arma2@gmail.com',
-				pass: 'keeperboy12'
+				pass: 
 			  }
 		});
 		
