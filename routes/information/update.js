@@ -58,7 +58,7 @@ module.exports = (req, res) => {
     }
     else{
 		
-		var sqlquery = "UPDATE `Information` SET `text`= " + db.connection.escape(text) + ", `page`= '" + req.body.iPage + "' , `title`= " + db.connection.escape(req.body.iTitle) +", `language_id`= '" + req.body.language_id + "' WHERE `information_id`= " + req.params.infoId + ";"
+		var sqlquery = "UPDATE `Information` SET `text`= " + db.connection.escape(text) + ", `page`= '" + req.body.iPage + "' , `title`= " + db.connection.escape(req.body.iTitle) +", `language_id`= '" + req.body.language_id + "', `difficulty`= '" + req.body.difficulty + "' WHERE `information_id`= " + req.params.infoId + ";"
     }
 	console.log(sqlquery)
     db.connection.query(sqlquery, function (err, result3){

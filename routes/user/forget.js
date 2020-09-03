@@ -18,7 +18,8 @@ const nodemailer = require("nodemailer");
 				pass: 'keeperboy12'
 			  }
 		});
-			var url = "https://www.chrisfaber.tk/passreset?token="+token
+		var fullUrl = req.protocol + '://' + req.get('host')
+			var url = fullUrl + "/passreset?token="+token
 		  let mailOptions = {
 			from: '"Chris Faber Bollegraaf" chris.arma2@gmail.com', // sender address
 			to: mail, // list of receivers
@@ -38,44 +39,62 @@ const nodemailer = require("nodemailer");
 
 module.exports = (req, res) => {
 	if(req.body.token){
-		console.log(req.body)
-		const  email  =  req.body.email;
-		const  pass  =  req.body.pass;
-		var sqlquery = "SELECT `user_id`, `email`, `resetPass` FROM `User` "
-        sqlquery += "WHERE `email` = '" + email + "' "
-        sqlquery += "AND `resetPass` = '" + req.body.token + "' Limit 1;";
-		db.connection.query(sqlquery, function (err, result){
-			console.log(err);
-			console.log(result);
-			if(err){throw err;}
-			else if(result.length == 0){
-				var err = "This email or token is incorrect";
-				var err_code = 1
-					res.status(200).json({
-						err, err_code
-				})
-			}
-			else{
-				
-				 bcrypt.hash(pass, salt, function(err, hash) {
-				// Store hash in your password DB.
-					password = hash;
-					var sqlquery = "UPDATE `User` SET `resetPass` = NULL, "
-					sqlquery += "`password` = '" + password + "' "
-					sqlquery += "WHERE `email` = '" + email + "' "
-					sqlquery += "OR `username` = '" + email + "' Limit 1;";
+		if(req.body.token == 'passchange'){
+			const  pass  =  req.body.pass
+			bcrypt.hash(pass, salt, function(err, hash) {
+			// Store hash in your password DB.
+				password = hash;
+				var sqlquery = "UPDATE `User` SET `resetPass` = NULL, "
+				sqlquery += "`password` = '" + password + "' "
+				sqlquery += "WHERE `user_id` = '" + req.body.user_id + "';"				
+				db.connection.query(sqlquery, function (err, result){
+					if(err) throw err;
+					console.log(result);
+					const user = "Password changed";
+					res.status(200).json({user});
+				}) 
+			})			
+		}
+		else{
+			console.log(req.body)
+			const  email  =  req.body.email;
+			const  pass  =  req.body.pass;
+			var sqlquery = "SELECT `user_id`, `email`, `resetPass` FROM `User` "
+			sqlquery += "WHERE `email` = '" + email + "' "
+			sqlquery += "AND `resetPass` = '" + req.body.token + "' Limit 1;";
+			db.connection.query(sqlquery, function (err, result){
+				console.log(err);
+				console.log(result);
+				if(err){throw err;}
+				else if(result.length == 0){
+					var err = "This email or token is incorrect";
+					var err_code = 1
+						res.status(200).json({
+							err, err_code
+					})
+				}
+				else{
 					
-					db.connection.query(sqlquery, function (err, result){
-						if(err) throw err;
-						console.log(result);
-						const user = "Password changed";
-						res.status(200).json({user});
-					}) 
-				})
-				
-				
-			}
-		})   
+					 bcrypt.hash(pass, salt, function(err, hash) {
+					// Store hash in your password DB.
+						password = hash;
+						var sqlquery = "UPDATE `User` SET `resetPass` = NULL, "
+						sqlquery += "`password` = '" + password + "' "
+						sqlquery += "WHERE `email` = '" + email + "' "
+						sqlquery += "OR `username` = '" + email + "' Limit 1;";
+						
+						db.connection.query(sqlquery, function (err, result){
+							if(err) throw err;
+							console.log(result);
+							const user = "Password changed";
+							res.status(200).json({user});
+						}) 
+					})
+					
+					
+				}
+			})   
+		}
 		
 	}
 	else{
