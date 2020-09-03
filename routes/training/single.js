@@ -14,7 +14,7 @@ module.exports = (req, res) => {
 		//var sqlquery = "SELECT * FROM `bollegraafdb`.`allTrainingen` LEFT JOIN `bollegraafdb`.`User_has_Subonderdeel` using (subonderdeel_id) WHERE `user_id` = " + req.params.userId + " OR `user_id` is null AND `onderdeel_id` is not null AND `subonderdeel_id` is not null;";
    }
    else{
-	var sqlquery = "SELECT * FROM `allTrainingen` WHERE `trainig_id` = " + req.params.trainingId + ";";
+	var sqlquery = "SELECT * FROM `allTrainingen` WHERE `training_id` = " + req.params.trainingId + ";";
    }
    // console.log(sqlquery)
 		db.connection.query(sqlquery, function (err, result){

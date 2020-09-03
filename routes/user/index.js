@@ -12,6 +12,7 @@ const register = require('./register')
 const update = require('./update')
 const add = require('./add')
 const forget = require('./forget')
+const remove = require('./delete')
 
 user.get('/', all);
 user.get('/:userId', single)
@@ -20,5 +21,6 @@ user.post('/register', register)
 user.post('/', add)
 user.put('/update/:userId', update)
 user.put('/forget', forget)
+user.delete('/:userId', remove)
 
 module.exports = user;

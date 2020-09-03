@@ -65,6 +65,9 @@ module.exports = (req, res) => {
     })
 	console.log(pass)
 	sendUserMail(email, pass)
+	
+			var user = "succes"
+			res.status(200).json({user});
 }
 
 const  createUser  = (info, cb) => {

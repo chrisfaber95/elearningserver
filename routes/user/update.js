@@ -6,6 +6,11 @@ const SECRET_KEY = "secretkey23456";
 
 module.exports = (req, res) => {
     //console.log(req);
+	
+	
+	var fullUrl = req.protocol + '://' + req.get('host')
+	console.log(fullUrl)
+	
     updateUser([req.body, req.params.userId])
     updateUserinfo(req.body)
     updateWorkinfo(req.body)
@@ -47,8 +52,8 @@ const updateContactinfo = (info, cb) => {
 }
 
 const updateUser = (info, cb) => {
-    console.log(info[0])
-	if(info[0].expire_date != null || info[0].expire_date != 'undefined'){
+    console.log(info[0].expire_date)
+	if(info[0].expire_date){
 		sqlquery = "UPDATE `User` SET `email`= '" + info[0].email + "', `permission_id` = '" + info[0].permission_id + "', `deleted` = '" + info[0].deleted + "', `expire_date` = '" + info[0].expire_date + "' WHERE `user_id`= " + info[1] + ";"
 	}
 	else{
